@@ -338,6 +338,16 @@ Deliveries are triggered automatically by the SDK based on rules configured in N
 | `page_url` | Current URL matches the glob pattern (supports `*`, `**`, `?`) |
 | `custom_event` | A tracked event's `eventKey` matches the trigger's `eventKey` |
 
+### Trigger Conditions
+
+Triggers may have additional conditions configured in Nemme Studio that must all be satisfied before a delivery fires. Conditions are evaluated server-side when the SDK calls `/external/deliveries/{id}/should-deliver?triggerId={id}` — no client-side code is required. If any condition fails, the delivery is skipped.
+
+| Condition type | Fields | Semantics |
+|---|---|---|
+| `days_since` | `daysReference`: `first_seen_at` \| `last_seen_at`<br>`minDays?`: number<br>`maxDays?`: number | Passes when the number of whole days between `now` and the user's first/last tracked event is in `[minDays, maxDays]` (inclusive on both sides; either bound optional). Fails when the user has no tracking events for this product. |
+
+Both bounds accept `0`. A missing bound means unbounded on that side. If neither bound is set, the condition is invalid and rejected by the API.
+
 ### URL Pattern Examples
 
 | Pattern | Matches |
