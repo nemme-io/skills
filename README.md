@@ -4,8 +4,8 @@
 
 ## Available Skills
 
-| Skill | Description |
-|---|---|
+| Skill                     | Description                                                                                |
+| ------------------------- | ------------------------------------------------------------------------------------------ |
 | [nemme-sdk](./nemme-sdk/) | Integrate the `@nemme/js-sdk` for event tracking, page views, forms, and delivery triggers |
 
 ## Installation
@@ -30,7 +30,7 @@ Once installed, skills activate automatically when relevant — for example, whe
 
 ## Publishing
 
-Skills are maintained in the [nemme monorepo](https://github.com/nemme/nemme) under `skills/` and published to [nemme/skills](https://github.com/nemme/skills).
+Skills are maintained in the [nemme monorepo](https://github.com/nemme-io/nemme) under `skills/` and published to [nemme/skills](https://github.com/nemme-io/skills).
 
 To publish an update:
 
