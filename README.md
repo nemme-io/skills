@@ -11,13 +11,13 @@
 ## Installation
 
 ```bash
-npx skills add nemme/skills
+npx skills add nemme-io/skills
 ```
 
 Or install globally (available in all projects):
 
 ```bash
-npx skills add nemme/skills -g
+npx skills add nemme-io/skills -g
 ```
 
 ## Usage
