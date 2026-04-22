@@ -8,7 +8,7 @@ description: >
   delivery, and troubleshooting.
 metadata:
   author: Nemme
-  version: 0.8.0
+  version: 0.9.1
 license: MIT
 ---
 
@@ -202,6 +202,44 @@ type NemmeEventProperties<T extends NemmeEventName> = NemmeEventPropertiesMap[T]
   - Required properties are non-optional
   - Optional properties use `?: type | null` syntax
 - Property type names use PascalCase derived from the event key (e.g., `user_login` becomes `UserLoginProperties`)
+
+### Format rules for hand-rolled `nemme-types.d.ts`
+
+The studio's import page parses pasted `.d.ts` files back into event definitions. If you hand-write this file (instead of copying from the Dev page), it **must** follow the same shape or the import will fail. Concrete rules:
+
+1. **JSDoc above each union member** is required, with `Group - Event Name` on a line by itself:
+
+   ```ts
+   /**
+    * Auth - Login Success
+    */
+   | 'login_success'
+   ```
+
+   A single-line form is also accepted: `/** Auth - Login Success */`. Em-dash (`—`) and en-dash (`–`) are accepted as substitutes for ` - `.
+
+2. **Property blocks** must use the `= { ... }` object-literal form — not `Record<string, never>` — and each property on its own line (or multiple per line separated by `;`). Use regular `string`, `number`, `boolean` only.
+
+   ```ts
+   type LoginSuccessProperties = {
+     method: string;
+     duration_ms?: number | null;
+   };
+   ```
+
+   Empty properties use `{}` with an eslint-disable comment:
+
+   ```ts
+   // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+   type LogoutProperties = {
+   };
+   ```
+
+3. **Property type names** must be `${PascalCase(eventKey)}Properties`. `login_success` → `LoginSuccessProperties`. `event_v2` → `EventV2Properties`.
+
+4. **`NemmeEventPropertiesMap`** must list every event key mapped to its `*Properties` type. The map enforces type-safe `track()` calls.
+
+If you see errors like `JSDoc for 'X' is empty` or `Could not parse property line`, your JSDoc is single-line-without-internal-star or multiple properties share a line without an explicit `;` separator. Fix by using the multi-line JSDoc and/or splitting properties on their own lines.
 
 ### Using the Generated Types
 
