@@ -487,14 +487,19 @@ type Question = TextQuestion | ChoiceQuestion;
 
 Events are batched by default to reduce network overhead:
 
-- **Single event**: sent via `POST /external/trackings/track`
-- **Multiple events**: sent via `POST /external/trackings/batch`
+- **Single event**: sent via `POST /external/trackings/track` with body `{ ...event, sentAt }`
+- **Multiple events**: sent via `POST /external/trackings/batch` with body `{ sentAt, events: [...] }`
 - **Auto-flush triggers**:
   - Batch reaches `size` threshold (default: 10)
   - Timer expires after `delayMs` (default: 10s)
   - Page unload (`beforeunload` / `pagehide`) if `sendOnUnload: true`
 - **Manual flush**: `client.flush()` or `flush()` from `useNemme()`
 - **Failed flush**: events are prepended back to the queue for retry
+
+`sentAt` is captured at the moment the HTTP request is dispatched. The server
+uses it to compute clock skew (`sentAt - receivedAt`) and adjusts every event's
+`timestamp` to its own clock, so analytics stays accurate even when the user's
+device clock is wrong.
 
 To disable batching:
 
