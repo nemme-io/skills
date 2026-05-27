@@ -8,7 +8,7 @@ description: >
   delivery, and troubleshooting.
 metadata:
   author: Nemme
-  version: 1.0.0
+  version: 0.10.0
 license: MIT
 ---
 
@@ -26,22 +26,19 @@ For script tag usage (UMD):
 
 ```html
 <script src="https://unpkg.com/@nemme/js-sdk@latest/dist/nemme-sdk.umd.js"></script>
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/@nemme/js-sdk@latest/dist/js-sdk.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/@nemme/js-sdk@latest/dist/js-sdk.css" />
 ```
 
 ## Entry Points
 
 The SDK has four entry points:
 
-| Import                    | Purpose                                                            |
-| ------------------------- | ------------------------------------------------------------------ |
-| `@nemme/js-sdk`           | Core client — initialization, tracking, flush, destroy             |
-| `@nemme/js-sdk/react`     | React integration — `NemmeProvider`, `useNemme`, `useNemmeContext` |
-| `@nemme/js-sdk/forms`     | Form types — `Form`, `FormConfig`, `FormError`, question types     |
-| `@nemme/js-sdk/style.css` | Required stylesheet for form UI rendering                          |
+| Import | Purpose |
+|---|---|
+| `@nemme/js-sdk` | Core client — initialization, tracking, flush, destroy |
+| `@nemme/js-sdk/react` | React integration — `NemmeProvider`, `useNemme`, `useNemmeContext` |
+| `@nemme/js-sdk/forms` | Form types — `Form`, `FormConfig`, `FormError`, question types |
+| `@nemme/js-sdk/style.css` | Required stylesheet for form UI rendering |
 
 ---
 
@@ -50,32 +47,29 @@ The SDK has four entry points:
 ### Initialization
 
 ```typescript
-import NemmeSDK from "@nemme/js-sdk";
+import NemmeSDK from '@nemme/js-sdk';
 
-const client = NemmeSDK("YOUR_CLIENT_KEY");
+const client = NemmeSDK('YOUR_CLIENT_KEY');
 await client.init({
-  userIdentifier: "user-123", // Required: unique user identifier
-  secretKey: "optional-secret", // Optional: server-side validation
-  debug: true, // Optional: enable debug logging
-  batch: {
-    // Optional: batching config (or just `true`/`false`)
-    enabled: true, // Default: true
-    size: 10, // Default: 10 events before auto-flush
-    delayMs: 10000, // Default: 10000ms (10s) between flushes
-    sendOnUnload: true, // Default: true — flush on page unload
+  userIdentifier: 'user-123',         // Required: unique user identifier
+  secretKey: 'optional-secret',       // Optional: server-side validation
+  debug: true,                        // Optional: enable debug logging
+  batch: {                            // Optional: batching config (or just `true`/`false`)
+    enabled: true,                    // Default: true
+    size: 10,                         // Default: 10 events before auto-flush
+    delayMs: 10000,                   // Default: 10000ms (10s) between flushes
+    sendOnUnload: true,               // Default: true — flush on page unload
   },
-  formConfig: {
-    // Optional: form display settings
-    theme: "light", // 'light' | 'dark'
+  formConfig: {                       // Optional: form display settings
+    theme: 'light',                   // 'light' | 'dark'
     zIndex: 9999,
-    onFormError: (error) => {
-      // error.errorType: 'FETCH_ERROR' | 'SUBMISSION_ERROR'
+    onFormError: (error) => {         // error.errorType: 'FETCH_ERROR' | 'SUBMISSION_ERROR'
       console.error(error);
     },
   },
-  deactivate: false, // Optional: disable SDK entirely
-  trackUrlParamChanges: true, // Optional: track query param changes as page views
-  getPage: () => window.location.href, // Optional: custom page URL getter
+  deactivate: false,                  // Optional: disable SDK entirely
+  trackUrlParamChanges: true,         // Optional: track query param changes as page views
+  getPage: () => window.location.href // Optional: custom page URL getter
 });
 ```
 
@@ -85,8 +79,8 @@ await client.init({
 
 ```typescript
 const client = await NemmeSDK.init({
-  clientKey: "YOUR_CLIENT_KEY",
-  userIdentifier: "user-123",
+  clientKey: 'YOUR_CLIENT_KEY',
+  userIdentifier: 'user-123',
   debug: true,
 });
 ```
@@ -94,10 +88,10 @@ const client = await NemmeSDK.init({
 ### Client Properties
 
 ```typescript
-client.clientKey; // string — the API key
-client.userIdentifier; // string | undefined
-client.initialized; // boolean
-client.lastInitError; // Error | null — check after init failure
+client.clientKey         // string — the API key
+client.userIdentifier    // string | undefined
+client.initialized       // boolean
+client.lastInitError     // Error | null — check after init failure
 ```
 
 ---
@@ -108,10 +102,10 @@ client.lastInitError; // Error | null — check after init failure
 
 ```typescript
 await client.track({
-  eventKey: "button_clicked",
+  eventKey: 'button_clicked',
   data: {
-    buttonId: "cta-signup",
-    page: "pricing",
+    buttonId: 'cta-signup',
+    page: 'pricing',
     count: 3,
     premium: true,
   },
@@ -156,15 +150,15 @@ type NemmeEventName =
   /**
    * Authentication - User Login
    */
-  | "user_login"
+  | 'user_login'
   /**
    * Authentication - User Signup
    */
-  | "user_signup"
+  | 'user_signup'
   /**
    * E-Commerce - Purchase
    */
-  | "purchase";
+  | 'purchase';
 
 type UserLoginProperties = {
   platform: string;
@@ -194,8 +188,7 @@ type NemmeEvent<T extends NemmeEventName = NemmeEventName> = {
   data?: NemmeEventPropertiesMap[T];
 };
 
-type NemmeEventProperties<T extends NemmeEventName> =
-  NemmeEventPropertiesMap[T];
+type NemmeEventProperties<T extends NemmeEventName> = NemmeEventPropertiesMap[T];
 ```
 
 ### How the Types Map to Event Definitions
@@ -223,7 +216,7 @@ The studio's import page parses pasted `.d.ts` files back into event definitions
    | 'login_success'
    ```
 
-   A single-line form is also accepted: `/** Auth - Login Success */`. Em-dash (`—`) and en-dash (`–`) are accepted as substitutes for `-`.
+   A single-line form is also accepted: `/** Auth - Login Success */`. Em-dash (`—`) and en-dash (`–`) are accepted as substitutes for ` - `.
 
 2. **Property blocks** must use the `= { ... }` object-literal form — not `Record<string, never>` — and each property on its own line (or multiple per line separated by `;`). Use regular `string`, `number`, `boolean` only.
 
@@ -238,7 +231,8 @@ The studio's import page parses pasted `.d.ts` files back into event definitions
 
    ```ts
    // eslint-disable-next-line @typescript-eslint/no-empty-object-type
-   type LogoutProperties = {};
+   type LogoutProperties = {
+   };
    ```
 
 3. **Property type names** must be `${PascalCase(eventKey)}Properties`. `login_success` → `LoginSuccessProperties`. `event_v2` → `EventV2Properties`.
@@ -250,15 +244,15 @@ If you see errors like `JSDoc for 'X' is empty` or `Could not parse property lin
 ### Using the Generated Types
 
 ```typescript
-import NemmeSDK from "@nemme/js-sdk";
+import NemmeSDK from '@nemme/js-sdk';
 
 // Use NemmeEvent<T> with the track method for type-safe tracking
-await client.track<NemmeEvent<"purchase">>({
-  eventKey: "purchase",
+await client.track<NemmeEvent<'purchase'>>({
+  eventKey: 'purchase',
   data: {
-    amount: 49.99, // Required number — IDE autocomplete shows this
-    currency: "usd", // Required string
-    item_count: 3, // Optional number
+    amount: 49.99,      // Required number — IDE autocomplete shows this
+    currency: 'usd',    // Required string
+    item_count: 3,      // Optional number
   },
 });
 
@@ -282,15 +276,15 @@ The types are displayed in a code block with copy-to-clipboard functionality. Co
 ### Provider Setup
 
 ```tsx
-import { NemmeProvider } from "@nemme/js-sdk/react";
-import "@nemme/js-sdk/style.css"; // Required for form rendering
+import { NemmeProvider } from '@nemme/js-sdk/react';
+import '@nemme/js-sdk/style.css'; // Required for form rendering
 
 function App() {
   return (
     <NemmeProvider
       clientKey="YOUR_CLIENT_KEY"
       config={{
-        userIdentifier: "user-123",
+        userIdentifier: 'user-123',
         debug: true,
       }}
     >
@@ -305,7 +299,7 @@ The provider automatically initializes the client on mount and destroys it on un
 ### useNemme Hook
 
 ```tsx
-import { useNemme } from "@nemme/js-sdk/react";
+import { useNemme } from '@nemme/js-sdk/react';
 
 function TrackableButton() {
   const { track, flush, isInitialized, error, client } = useNemme();
@@ -316,9 +310,9 @@ function TrackableButton() {
   return (
     <button
       onClick={() =>
-        track<NemmeEvent<"button_clicked">>({
-          eventKey: "button_clicked",
-          data: { button_id: "cta-hero" },
+        track<NemmeEvent<'button_clicked'>>({
+          eventKey: 'button_clicked',
+          data: { button_id: 'cta-hero' },
         })
       }
     >
@@ -333,7 +327,7 @@ function TrackableButton() {
 For direct access to the context object (lower-level):
 
 ```tsx
-import { useNemmeContext } from "@nemme/js-sdk/react";
+import { useNemmeContext } from '@nemme/js-sdk/react';
 
 const { client, isInitialized, error } = useNemmeContext();
 // Throws if used outside <NemmeProvider>
@@ -347,20 +341,17 @@ const { client, isInitialized, error } = useNemmeContext();
 <script src="https://unpkg.com/react@19/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@19/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@nemme/js-sdk@latest/dist/nemme-sdk.umd.js"></script>
-<link
-  rel="stylesheet"
-  href="https://unpkg.com/@nemme/js-sdk@latest/dist/js-sdk.css"
-/>
+<link rel="stylesheet" href="https://unpkg.com/@nemme/js-sdk@latest/dist/js-sdk.css" />
 
 <script>
   (async () => {
-    const client = await NemmeSDK("YOUR_CLIENT_KEY").init({
-      userIdentifier: "user-123",
+    const client = await NemmeSDK('YOUR_CLIENT_KEY').init({
+      userIdentifier: 'user-123',
       debug: true,
     });
 
-    document.getElementById("cta").addEventListener("click", () => {
-      client.track({ eventKey: "cta_clicked", data: { page: "home" } });
+    document.getElementById('cta').addEventListener('click', () => {
+      client.track({ eventKey: 'cta_clicked', data: { page: 'home' } });
     });
   })();
 </script>
@@ -380,39 +371,39 @@ Deliveries are triggered automatically by the SDK based on rules configured in N
 
 ### Trigger Types
 
-| Type           | Matches when                                                   |
-| -------------- | -------------------------------------------------------------- |
-| `page_url`     | Current URL matches the glob pattern (supports `*`, `**`, `?`) |
-| `custom_event` | A tracked event's `eventKey` matches the trigger's `eventKey`  |
+| Type | Matches when |
+|---|---|
+| `page_url` | Current URL matches the glob pattern (supports `*`, `**`, `?`) |
+| `custom_event` | A tracked event's `eventKey` matches the trigger's `eventKey` |
 
 ### Trigger Conditions
 
 Triggers may have additional conditions configured in Nemme Studio that must all be satisfied before a delivery fires. Conditions are evaluated server-side when the SDK calls `/external/deliveries/{id}/should-deliver?triggerId={id}` — no client-side code is required. If any condition fails, the delivery is skipped.
 
-| Condition type | Fields                                                                                         | Semantics                                                                                                                                                                                                                            |
-| -------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `days_since`   | `daysReference`: `first_seen_at` \| `last_seen_at`<br>`minDays?`: number<br>`maxDays?`: number | Passes when the number of whole days between `now` and the user's first/last tracked event is in `[minDays, maxDays]` (inclusive on both sides; either bound optional). Fails when the user has no tracking events for this product. |
+| Condition type | Fields | Semantics |
+|---|---|---|
+| `days_since` | `daysReference`: `first_seen_at` \| `last_seen_at`<br>`minDays?`: number<br>`maxDays?`: number | Passes when the number of whole days between `now` and the user's first/last tracked event is in `[minDays, maxDays]` (inclusive on both sides; either bound optional). Fails when the user has no tracking events for this product. |
 
 Both bounds accept `0`. A missing bound means unbounded on that side. If neither bound is set, the condition is invalid and rejected by the API.
 
 ### URL Pattern Examples
 
-| Pattern       | Matches                                                   |
-| ------------- | --------------------------------------------------------- |
-| `/pricing`    | Exactly `/pricing`                                        |
-| `/blog/*`     | `/blog/post-1` but not `/blog/2024/post-1`                |
-| `/docs/**`    | `/docs/getting-started`, `/docs/api/reference`, any depth |
-| `/products/?` | `/products/a` but not `/products/ab`                      |
+| Pattern | Matches |
+|---|---|
+| `/pricing` | Exactly `/pricing` |
+| `/blog/*` | `/blog/post-1` but not `/blog/2024/post-1` |
+| `/docs/**` | `/docs/getting-started`, `/docs/api/reference`, any depth |
+| `/products/?` | `/products/a` but not `/products/ab` |
 
 ### Form Error Handling
 
 ```typescript
-import { FormError } from "@nemme/js-sdk/forms";
+import { FormError } from '@nemme/js-sdk/forms';
 
 await client.init({
-  userIdentifier: "user-123",
+  userIdentifier: 'user-123',
   formConfig: {
-    theme: "dark",
+    theme: 'dark',
     zIndex: 10000,
     onFormError: (error: FormError) => {
       // error.errorType is 'FETCH_ERROR' or 'SUBMISSION_ERROR'
@@ -434,11 +425,11 @@ type Form = {
   questions: Question[];
 };
 
-type QuestionType = "choice" | "score" | "text" | "ranking";
+type QuestionType = 'choice' | 'score' | 'text' | 'ranking';
 
 type TextQuestion = {
   id: number;
-  questionType: "text";
+  questionType: 'text';
   title: string;
   description?: string;
   image?: string;
@@ -446,11 +437,13 @@ type TextQuestion = {
   order: number;
   limited: boolean;
   maxChars?: number;
+  customPlaceholder: boolean;
+  placeholder: string;
 };
 
 type ChoiceQuestion = {
   id: number;
-  questionType: "choice";
+  questionType: 'choice';
   title: string;
   description?: string;
   image?: string;
@@ -470,11 +463,11 @@ type Question = TextQuestion | ChoiceQuestion;
 
 ### Allowed Property Types
 
-| Type    | TypeScript | Notes                               |
-| ------- | ---------- | ----------------------------------- |
-| String  | `string`   | Automatically lowercased by the SDK |
-| Number  | `number`   | Integers and floats                 |
-| Boolean | `boolean`  | `true` / `false`                    |
+| Type | TypeScript | Notes |
+|---|---|---|
+| String | `string` | Automatically lowercased by the SDK |
+| Number | `number` | Integers and floats |
+| Boolean | `boolean` | `true` / `false` |
 
 ### Data Sanitization (automatic)
 
@@ -514,7 +507,7 @@ To disable batching:
 
 ```typescript
 await client.init({
-  userIdentifier: "user-123",
+  userIdentifier: 'user-123',
   batch: false, // or { enabled: false }
 });
 ```
