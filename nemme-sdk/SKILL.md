@@ -8,7 +8,7 @@ description: >
   delivery, and troubleshooting.
 metadata:
   author: Nemme
-  version: 0.10.0
+  version: 1.1.0
 license: MIT
 ---
 
