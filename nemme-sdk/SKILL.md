@@ -8,7 +8,7 @@ description: >
   delivery, and troubleshooting.
 metadata:
   author: Nemme
-  version: 1.0.0
+  version: 0.10.0
 license: MIT
 ---
 
@@ -53,6 +53,8 @@ const client = NemmeSDK('YOUR_CLIENT_KEY');
 await client.init({
   userIdentifier: 'user-123',         // Required: unique user identifier
   secretKey: 'optional-secret',       // Optional: server-side validation
+  group: 'Company A',                   // Optional: cohort group for analytics, use pseudonym id if group makes user identifiable.
+  role: 'Manager',                    // Optional: cohort role for analytics, use pseudonym id if role makes user identifiable.
   debug: true,                        // Optional: enable debug logging
   batch: {                            // Optional: batching config (or just `true`/`false`)
     enabled: true,                    // Default: true
@@ -72,6 +74,8 @@ await client.init({
   getPage: () => window.location.href // Optional: custom page URL getter
 });
 ```
+
+**Cohort attributes:** `group` and `role` are optional strings persisted on the Session row so analytics can filter and aggregate by cohort. They are part of the 30-minute session dedup key: changing either value between `init()` calls starts a new Session instead of mutating the previous one. Keep them stable for the duration of a visit.
 
 **Important:** `init()` must be called and awaited before `track()`. The client will warn if you track before initialization.
 
