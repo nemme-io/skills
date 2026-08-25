@@ -8,7 +8,7 @@ description: >
   delivery, and troubleshooting.
 metadata:
   author: Nemme
-  version: 1.1.1
+  version: 1.1.2
 license: MIT
 ---
 
@@ -60,7 +60,7 @@ await client.init({
     enabled: true,                    // Default: true
     size: 10,                         // Default: 10 events before auto-flush
     delayMs: 10000,                   // Default: 10000ms (10s) between flushes
-    sendOnUnload: true,               // Default: true — flush on page unload
+    sendOnUnload: true,               // Default: true — flush on pagehide
   },
   formConfig: {                       // Optional: form display settings
     theme: 'light',                   // 'light' | 'dark'
@@ -70,7 +70,7 @@ await client.init({
     },
   },
   deactivate: false,                  // Optional: disable SDK entirely
-  trackUrlParamChanges: true,         // Optional: track query param changes as page views
+  trackUrlParamChanges: true,         // Optional: treat the query string as part of the page identity
   getPage: () => window.location.href // Optional: custom page URL getter
 });
 ```
@@ -118,11 +118,17 @@ await client.track({
 
 ### Track a Page View (manual)
 
-Page views are tracked automatically on navigation (pushState, popstate, visibility change). To track manually:
+Page views are tracked automatically on navigation — see **Automatic events** below. To track manually:
 
 ```typescript
 client.trackPageView();
+
+// Consecutive views of the same page are suppressed. To emit anyway:
+client.trackPageView({ force: true });
 ```
+
+In React, use `trackPageView` from `useNemme()` instead of reaching for the
+client directly.
 
 ### Flush Pending Events
 
@@ -306,7 +312,7 @@ The provider automatically initializes the client on mount and destroys it on un
 import { useNemme } from '@nemme/js-sdk/react';
 
 function TrackableButton() {
-  const { track, flush, isInitialized, error, client } = useNemme();
+  const { track, trackPageView, flush, isInitialized, error, client } = useNemme();
 
   if (error) return <p>SDK error: {error}</p>;
   if (!isInitialized) return <p>Loading...</p>;
@@ -469,15 +475,15 @@ type Question = TextQuestion | ChoiceQuestion;
 
 | Type | TypeScript | Notes |
 |---|---|---|
-| String | `string` | Automatically lowercased by the SDK |
+| String | `string` | Sent verbatim — case preserved |
 | Number | `number` | Integers and floats |
 | Boolean | `boolean` | `true` / `false` |
 
 ### Data Sanitization (automatic)
 
-- All string values are converted to **lowercase**
 - Properties with unsupported types (objects, arrays, functions, null, undefined) are **silently removed** with a warning
 - If any value stringifies to `[object Object]`, the **entire event is dropped**
+- The `data` object you pass is never mutated — the SDK sanitizes a copy
 
 ### Validation Behavior
 
@@ -486,6 +492,30 @@ type Question = TextQuestion | ChoiceQuestion;
 - Unknown properties: **warning logged, event still sent**
 - Type mismatches: **warning logged, event still sent**
 - Validation is permissive — events are sent even with warnings
+
+---
+
+## Automatic events
+
+Two event keys are emitted by the SDK itself. They need no definition in Studio
+and are exempt from data sanitization and validation.
+
+| Event key | When | `data` |
+|---|---|---|
+| `page_view` | Initialization, `pushState`, `replaceState`, `popstate`, and bfcache restore (`pageshow` with `persisted`) | `{ title }` |
+| `page_left` | The visitor leaves the page: `pagehide`, or `visibilitychange` → hidden | `{ title, duration_seconds }` |
+
+`page_left` fires at most once per page view, and `duration_seconds` counts only
+**foreground** time — a tab left open in the background overnight reports the
+seconds it was actually visible, not the wall clock. Because it fires on the
+*first* hide, time spent reading after returning from a background stint is not
+added: treat `duration_seconds` as a floor on dwell rather than an estimate of
+it. It is the only way to measure the last page of a visit, where there is no
+following event to measure to.
+
+`page_left` needs at least one of its two hooks to be registered: `pagehide`
+comes with `batch.sendOnUnload` (on by default), `visibilitychange` comes with
+page-view tracking. Turning both off disables the event.
 
 ---
 
@@ -498,9 +528,14 @@ Events are batched by default to reduce network overhead:
 - **Auto-flush triggers**:
   - Batch reaches `size` threshold (default: 10)
   - Timer expires after `delayMs` (default: 10s)
-  - Page unload (`beforeunload` / `pagehide`) if `sendOnUnload: true`
+  - The visitor leaves (`pagehide`, or `visibilitychange` → hidden) if `sendOnUnload: true`
 - **Manual flush**: `client.flush()` or `flush()` from `useNemme()`
 - **Failed flush**: events are prepended back to the queue for retry
+
+Departure flushes use `fetch(..., { keepalive: true })` so the browser doesn't
+cancel them as the document goes away. Payloads above 60 KB fall back to a
+normal fetch (the spec caps keepalive bodies at 64 KB); a worst-case batch is
+about 4 KB, so this effectively never trips.
 
 `sentAt` is captured at the moment the HTTP request is dispatched. The server
 uses it to compute clock skew (`sentAt - receivedAt`) and adjusts every event's
@@ -544,9 +579,10 @@ await client.init({
 
 ### Page views not tracking
 
-- Check `trackUrlParamChanges` if query-param-only changes should be tracked
+- Consecutive views of the **same** page are suppressed. `A → B → A` still emits three; `A → A` emits one. Pass `{ force: true }` to override
+- Set `trackUrlParamChanges: false` if `?utm_source=…` changes should *not* count as a new page
 - The SDK wraps `history.pushState` and `history.replaceState` — if another library also wraps these, ordering may matter
-- `visibilitychange` events are used — background tabs won't generate page views until visible
+- Returning to a backgrounded tab does **not** emit a page view; that is not a navigation
 
 ### React hook errors
 
@@ -554,7 +590,3 @@ await client.init({
 - Provider auto-initializes on mount — no need to call `init()` manually
 - Provider auto-destroys on unmount — no need to call `destroy()`
 
-### String values appear wrong
-
-- All string event data is **automatically lowercased** by the SDK
-- If case-sensitive values are needed, this is a known SDK behavior
