@@ -8,7 +8,7 @@ description: >
   delivery, and troubleshooting.
 metadata:
   author: Nemme
-  version: 1.1.2
+  version: 1.2.0
 license: MIT
 ---
 
@@ -228,7 +228,33 @@ The studio's import page parses pasted `.d.ts` files back into event definitions
 
    A single-line form is also accepted: `/** Auth - Login Success */`. Em-dash (`—`) and en-dash (`–`) are accepted as substitutes for ` - `.
 
-2. **Property blocks** must use the `= { ... }` object-literal form — not `Record<string, never>` — and each property on its own line (or multiple per line separated by `;`). Use regular `string`, `number`, `boolean` only.
+   The group and the event name in the title can contain only letters `a-z` and `A-Z`, digits, and single spaces. Do not use special characters such as `-`, `_`, `(`, `)`, `&`, `/`, `'`, `.`, `:` or non-ASCII letters (`æ`, `ø`, `å`). The import rejects them.
+
+   ```ts
+   // Wrong: the import fails
+   /**
+    * E-Commerce - Add to cart (v2)
+    */
+   // Right
+   /**
+    * Ecommerce - Add to cart v2
+    */
+   ```
+
+2. **Property blocks** must use the `= { ... }` object-literal form — not `Record<string, never>` — and each property on its own line (or multiple per line separated by `;`). Use only the primitive types `string`, `number` and `boolean`. Do not use string literal unions, enums, or other union types. If a property has a fixed set of values, type it as `string`. The import fails on literal unions.
+
+   ```ts
+   // Wrong: the import fails
+   type LoginSuccessProperties = {
+     method: 'password' | 'passkey' | 'sso';
+   };
+   // Right
+   type LoginSuccessProperties = {
+     method: string;
+   };
+   ```
+
+   The only union that the import accepts is `| null` on an optional property:
 
    ```ts
    type LoginSuccessProperties = {
@@ -248,6 +274,8 @@ The studio's import page parses pasted `.d.ts` files back into event definitions
 3. **Property type names** must be `${PascalCase(eventKey)}Properties`. `login_success` → `LoginSuccessProperties`. `event_v2` → `EventV2Properties`.
 
 4. **`NemmeEventPropertiesMap`** must list every event key mapped to its `*Properties` type. The map enforces type-safe `track()` calls.
+
+If you see `Event name '...' in the JSDoc title is invalid` or `Group name '...' in the JSDoc title is invalid`, remove the special characters from the title. If you see `Union and literal types ... are not supported`, change the property type to `string`, `number` or `boolean`.
 
 If you see errors like `JSDoc for 'X' is empty` or `Could not parse property line`, your JSDoc is single-line-without-internal-star or multiple properties share a line without an explicit `;` separator. Fix by using the multi-line JSDoc and/or splitting properties on their own lines.
 
